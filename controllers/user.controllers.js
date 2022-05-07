@@ -6,14 +6,21 @@ const userController = {};
 
 // 1. Staff can create an account by email and password, roles default: staff
 userController.register = catchAsync(async (req, res, next) => {
-  let { name, email, password } = req.body;
+  let { name, email, password, avatarUrl } = req.body;
   let user = await User.findOne({ email });
   if (user) {
     throw new AppError(409, "User already exists", "Register error");
   }
   const salt = await bcrypt.genSalt(10);
   password = await bcrypt.hash(password, salt);
-  user = await User.create({ name, email, password });
+
+  const newAccount = {};
+  newAccount.name = name;
+  newAccount.email = email;
+  newAccount.password = password;
+  newAccount.avatarUrl = avatarUrl ? avatarUrl : "";
+
+  user = await User.create(newAccount);
 
   const accessToken = user.generateToken();
 
@@ -72,6 +79,7 @@ userController.getAllUsers = catchAsync(async (req, res, next) => {
   );
 });
 
+// 4. User can see the information the user by id
 userController.getSingleUserById = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
 
@@ -89,6 +97,7 @@ userController.getSingleUserById = catchAsync(async (req, res, next) => {
   );
 });
 
+// 5. Owners can see their own user information
 userController.getCurrentUserProfile = catchAsync(async (req, res, next) => {
   const { currentUserId } = req;
   const currentUser = await User.findById(currentUserId);
@@ -105,18 +114,51 @@ userController.getCurrentUserProfile = catchAsync(async (req, res, next) => {
   );
 });
 
+// 6. Owner can update their account profile
 userController.updateCurrentUser = catchAsync(async (req, res, next) => {
+  let { newPassword, confirmPassword } = req.body;
+
   const { currentUserId } = req;
-  let user = await User.findById(currentUserId);
+  let user = await User.findOne({ _id: currentUserId }, "+password");
+
   if (!user) {
     throw new AppError(404, "User not found", "Get current user error");
   }
-  const allows = ["name"];
+
+  const allows = ["name", "avatarUrl"];
   allows.forEach((field) => {
     if (req.body[field] !== undefined) {
       user[field] = req.body[field];
     }
   });
+
+  if (newPassword && confirmPassword) {
+    const isMatch = await bcrypt.compare(newPassword, user.password);
+    if (isMatch) {
+      throw new AppError(
+        400,
+        "New password must be different old password",
+        "Update user error"
+      );
+    }
+    if (newPassword !== confirmPassword) {
+      throw new AppError(
+        400,
+        "New Password and Confirm Password are not match",
+        "Update user error"
+      );
+    } else {
+      const salt = await bcrypt.genSalt(10);
+      const password = await bcrypt.hash(newPassword, salt);
+      user.password = password;
+    }
+  } else if (newPassword || confirmPassword) {
+    throw new AppError(
+      400,
+      "Missing newPassword or confirmPassword info",
+      "Update user error"
+    );
+  }
   await user.save();
 
   return sendResponse(
@@ -129,6 +171,7 @@ userController.updateCurrentUser = catchAsync(async (req, res, next) => {
   );
 });
 
+// 7. Admin can delete staff's account by id
 userController.deleteUser = catchAsync(async (req, res, next) => {
   const { currentUserId } = req;
   const { userId } = req.params;
