@@ -28,9 +28,13 @@ userSchema.methods.toJSON = function () {
 };
 
 userSchema.methods.generateToken = function () {
-  const accessToken = jwt.sign({ _id: this._id }, JWT_SECRET_KEY, {
-    expiresIn: "1d",
-  });
+  const accessToken = jwt.sign(
+    { _id: this._id, roles: this.roles },
+    JWT_SECRET_KEY,
+    {
+      expiresIn: "1d",
+    }
+  );
   return accessToken;
 };
 

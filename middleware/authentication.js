@@ -19,8 +19,25 @@ authMiddleware.loginRequired = (req, res, next) => {
       }
       checkObjectId(payload._id);
       req.currentUserId = payload._id; //undefiend
+      req.currentRole = payload.roles;
     });
     next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+authMiddleware.isAdmin = (req, res, next) => {
+  try {
+    const { currentRole } = req;
+    if (currentRole === "admin") {
+      return next();
+    }
+    throw new AppError(
+      401,
+      "You do not have the permission",
+      "Permission error"
+    );
   } catch (error) {
     next(error);
   }

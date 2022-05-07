@@ -173,25 +173,14 @@ userController.updateCurrentUser = catchAsync(async (req, res, next) => {
 
 // 7. Admin can delete staff's account by id
 userController.deleteUser = catchAsync(async (req, res, next) => {
-  const { currentUserId } = req;
   const { userId } = req.params;
-  console.log("Check here", currentUserId.roles);
-  const loggedInUser = await User.findById(currentUserId);
-  if (loggedInUser.roles === "admin") {
-    let user = await User.findOneAndDelete({
-      _id: userId,
-    });
-    if (!user) {
-      throw new AppError(404, "User not found", "Update User error ");
-    }
-    return sendResponse(res, 200, true, {}, null, "Delete User successful");
-  } else {
-    throw new AppError(
-      400,
-      "You do not have the permission",
-      "Delete User error"
-    );
+  let user = await User.findOneAndDelete({
+    _id: userId,
+  });
+  if (!user) {
+    throw new AppError(404, "User not found", "Update User error ");
   }
+  return sendResponse(res, 200, true, {}, null, "Delete User successful");
 });
 
 module.exports = userController;

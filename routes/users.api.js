@@ -8,7 +8,7 @@ const {
   updateCurrentUser,
   deleteUser,
 } = require("../controllers/user.controllers");
-const { loginRequired } = require("../middleware/authentication");
+const { loginRequired, isAdmin } = require("../middleware/authentication");
 const router = express.Router();
 
 /**
@@ -58,6 +58,6 @@ router.put("/me/update", loginRequired, updateCurrentUser);
  * @description Delete user by id
  * @access Login required
  */
-router.delete("/delete/:userId", loginRequired, deleteUser);
+router.delete("/delete/:userId", loginRequired, isAdmin, deleteUser);
 
 module.exports = router;
