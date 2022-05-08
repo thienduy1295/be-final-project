@@ -58,15 +58,29 @@ userController.loginEmailPassword = catchAsync(async (req, res, next) => {
 
 // 3. Users can see a list of users
 userController.getAllUsers = catchAsync(async (req, res, next) => {
-  let { page, limit } = req.query;
+  let { page, limit, ...filter } = { ...req.query };
   page = parseInt(page) || 1;
   limit = parseInt(limit) || 10;
 
-  const count = await User.countDocuments({ roles: "staff" });
+  const filterCondition = [{ isDeleted: false }];
+
+  const allow = ["name", "email"];
+  allow.forEach((field) => {
+    if (filter[field] !== undefined) {
+      filterCondition.push({
+        [field]: { $regex: filter[field], $options: "i" },
+      });
+    }
+  });
+  const filterCriteria = filterCondition.length
+    ? { $and: filterCondition }
+    : {};
+
+  const count = await User.countDocuments(filterCriteria);
   const totalPage = Math.ceil(count / limit);
   const offset = limit * (page - 1);
 
-  let usersList = await User.find({ roles: "staff" })
+  let usersList = await User.find(filterCriteria)
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(limit);
