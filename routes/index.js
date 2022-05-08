@@ -9,4 +9,8 @@ router.use("/users", userRouter);
 const taskRouter = require("./tasks.api");
 router.use("/tasks", taskRouter);
 
+/** BimLib endpoints */
+const bimLibRouter = require("./bimLib.api");
+router.use("/bimLibrary", bimLibRouter);
+
 module.exports = router;
