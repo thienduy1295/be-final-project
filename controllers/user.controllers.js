@@ -9,7 +9,7 @@ userController.register = catchAsync(async (req, res, next) => {
   let { name, email, password, avatarUrl } = req.body;
   let user = await User.findOne({ email });
   if (user) {
-    throw new AppError(409, "User already exists", "Register error");
+    throw new AppError(409, "Email already exists", "Register error");
   }
   const salt = await bcrypt.genSalt(10);
   password = await bcrypt.hash(password, salt);
@@ -50,6 +50,7 @@ userController.loginEmailPassword = catchAsync(async (req, res, next) => {
   return sendResponse(
     res,
     200,
+    true,
     { user, accessToken },
     null,
     "Login successful"
@@ -62,7 +63,7 @@ userController.getAllUsers = catchAsync(async (req, res, next) => {
   page = parseInt(page) || 1;
   limit = parseInt(limit) || 10;
 
-  const filterCondition = [{ isDeleted: false }];
+  const filterCondition = [{ roles: "staff" }];
 
   const allow = ["name", "email"];
   allow.forEach((field) => {
@@ -87,7 +88,20 @@ userController.getAllUsers = catchAsync(async (req, res, next) => {
   return sendResponse(
     res,
     200,
-    { usersList, totalPage },
+    true,
+    { usersList, totalPage, count },
+    null,
+    "Get all user successful"
+  );
+});
+
+userController.getAllData = catchAsync(async (req, res, next) => {
+  const userList = await User.find({ roles: "staff" });
+  return sendResponse(
+    res,
+    200,
+    true,
+    { userList },
     null,
     "Get all user successful"
   );
@@ -105,7 +119,7 @@ userController.getSingleUserById = catchAsync(async (req, res, next) => {
     res,
     200,
     true,
-    user,
+    { user },
     null,
     "Get Single user by id successful"
   );

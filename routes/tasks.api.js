@@ -8,6 +8,8 @@ const {
   listOfTaskReceive,
   UpdateTaskToReviewByStaff,
   UpdateTaskReviewByAdmin,
+  GetStaffsOfTask,
+  GetStatusNumber,
 } = require("../controllers/task.controllers");
 const { loginRequired, isAdmin } = require("../middleware/authentication");
 const { validate, checkObjectId } = require("../middleware/validator");
@@ -97,5 +99,13 @@ router.put(
   isAdmin,
   UpdateTaskReviewByAdmin
 );
+/**
+ * @route Get /tasks
+ * @description Get staff have task with taskId
+ * @access Login required
+ */
+router.get("/:taskId/staff", loginRequired, GetStaffsOfTask);
+
+router.get("/countstatus", loginRequired, isAdmin, GetStatusNumber);
 
 module.exports = router;

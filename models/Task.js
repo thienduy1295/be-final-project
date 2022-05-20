@@ -11,11 +11,15 @@ const taskSchema = Schema(
       enum: ["todo", "review", "done"],
       default: "todo",
     },
+    duedate: { type: Date, require: true },
     assigner: { type: Schema.Types.ObjectId, ref: "Users", require: true },
     assignee: { type: Schema.Types.ObjectId, ref: "Users", require: true },
+
+    // team: { type: String },
+    //add object id library
   },
   {
-    timestamp: true,
+    timestamps: true,
   }
 );
 

@@ -8,6 +8,7 @@ const {
   getCurrentUserProfile,
   updateCurrentUser,
   deleteUser,
+  getAllData,
 } = require("../controllers/user.controllers");
 const { loginRequired, isAdmin } = require("../middleware/authentication");
 const { validate, checkObjectId } = require("../middleware/validator");
@@ -85,5 +86,7 @@ router.put("/me/update", loginRequired, updateCurrentUser);
  * @access Login required
  */
 router.delete("/delete/:userId", loginRequired, isAdmin, deleteUser);
+
+router.get("/data/all", loginRequired, getAllData);
 
 module.exports = router;

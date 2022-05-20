@@ -7,7 +7,7 @@ const taskController = {};
 //1. Authenticated admin can create task and give task to staff
 taskController.createTask = catchAsync(async (req, res, next) => {
   const { currentUserId } = req;
-  const { name, detail, assignee } = req.body;
+  const { name, detail, assignee, duedate } = req.body;
 
   const receiver = await User.findById(assignee);
 
@@ -20,6 +20,7 @@ taskController.createTask = catchAsync(async (req, res, next) => {
   newTask.detail = detail;
   newTask.assigner = currentUserId;
   newTask.assignee = assignee;
+  newTask.duedate = duedate;
 
   const task = await Task.create(newTask);
 
@@ -28,23 +29,15 @@ taskController.createTask = catchAsync(async (req, res, next) => {
 
 // 2. Authenticated admin can see a list of task.
 taskController.getAllTasks = catchAsync(async (req, res, next) => {
-  let { page, limit } = req.query;
-  page = parseInt(page) || 1;
-  limit = parseInt(limit) || 10;
-
-  const count = await Task.countDocuments();
-  const totalPage = Math.ceil(count / limit);
-  const offset = limit * (page - 1);
-
   let tasksList = await Task.find()
-    .sort({ createdAt: -1 })
-    .skip(offset)
-    .limit(limit);
+    .populate("assignee")
+    .sort({ createdAt: -1 });
 
   return sendResponse(
     res,
     200,
-    { tasksList, totalPage },
+    true,
+    { tasksList },
     null,
     "Get all user successful"
   );
@@ -54,7 +47,7 @@ taskController.getAllTasks = catchAsync(async (req, res, next) => {
 taskController.updateTask = catchAsync(async (req, res, next) => {
   const { currentUserId } = req;
   const { taskId } = req.params;
-  const { name, detail, assignee } = req.body;
+  const { name, detail, assignee, duedate } = req.body;
   let task = await Task.findById({ _id: taskId });
   if (!task) {
     throw new AppError(404, "Task not found", "Update Task Error");
@@ -63,6 +56,7 @@ taskController.updateTask = catchAsync(async (req, res, next) => {
   task.name = name;
   task.detail = detail;
   task.assignee = assignee;
+  task.duedate = duedate;
   task = await task.save();
 
   return sendResponse(res, 200, true, task, null, "Update Task Successful");
@@ -84,27 +78,16 @@ taskController.deleteTask = catchAsync(async (req, res, next) => {
 // 5. Staff can see list of assigned tasks✅
 taskController.listOfTaskReceive = catchAsync(async (req, res, next) => {
   const { currentUserId } = req;
-  let { page, limit, ...filter } = { ...req.query };
-  page = parseInt(page) || 1;
-  limit = parseInt(limit) || 10;
 
-  const count = await Task.countDocuments({ assignee: currentUserId });
-  const totalPage = Math.ceil(count / limit);
-  const offset = limit * (page - 1);
-
-  let tasksList = await Task.find({
+  const tasksList = await Task.find({
     assignee: currentUserId,
-    status: "todo",
-  })
-    .sort({ createdAt: -1 })
-    .skip(offset)
-    .limit(limit);
+  }).populate("assignee");
 
   return sendResponse(
     res,
     200,
     true,
-    { tasksList, totalPage },
+    { tasksList },
     null,
     "Get list of Task Successful"
   );
@@ -149,6 +132,28 @@ taskController.UpdateTaskReviewByAdmin = catchAsync(async (req, res, next) => {
   task.status = status;
   task = await task.save();
   return sendResponse(res, 200, true, task, null, "Update task successful");
+});
+
+taskController.GetStaffsOfTask = catchAsync(async (req, res, next) => {
+  const { taskId } = req.params;
+  const task = await Task.findById(taskId).populate("assignee");
+  if (!task) {
+    throw new AppError(400, "Task not found", "Update Task Error");
+  }
+  return sendResponse(res, 200, true, { task }, null, "success");
+});
+
+taskController.GetStatusNumber = catchAsync(async (req, res, next) => {
+  const countTodo = await Task.countDocuments({ status: "todo" });
+  const countReview = await Task.countDocuments({ status: "review" });
+  const countDone = await Task.countDocuments({ status: "done" });
+  return sendResponse(
+    res,
+    200,
+    true,
+    { todo: countTodo, review: countReview, done: countDone },
+    "Success"
+  );
 });
 
 module.exports = taskController;

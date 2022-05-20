@@ -5,7 +5,7 @@ const bimSchema = Schema({
   name: { type: String, require: true, unique: true },
   imageUrl: { type: String },
   fileUrl: { type: String },
-  type: { type: String, require: true, unique: true },
+  type: { type: String },
 });
 
 const Bim = mongoose.model("BimLibs", bimSchema);
