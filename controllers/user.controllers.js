@@ -43,7 +43,7 @@ userController.loginEmailPassword = catchAsync(async (req, res, next) => {
   }
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new AppError(400, "Invalid credentials", "Login error");
+    throw new AppError(400, "Password is not valid", "Login error");
   }
   const accessToken = user.generateToken();
 
