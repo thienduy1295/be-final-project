@@ -1,4 +1,5 @@
 const { catchAsync, sendResponse, AppError } = require("../helpers/utils");
+const Project = require("../models/Project");
 const Task = require("../models/Task");
 const User = require("../models/User");
 
@@ -7,7 +8,7 @@ const taskController = {};
 //1. Authenticated admin can create task and give task to staff
 taskController.createTask = catchAsync(async (req, res, next) => {
   const { currentUserId } = req;
-  const { name, detail, assignee, duedate } = req.body;
+  const { name, detail, assignee, duedate, projectId } = req.body;
 
   const receiver = await User.findById(assignee);
 
@@ -21,8 +22,15 @@ taskController.createTask = catchAsync(async (req, res, next) => {
   newTask.assigner = currentUserId;
   newTask.assignee = assignee;
   newTask.duedate = duedate;
+  newTask.project = projectId;
 
-  const task = await Task.create(newTask);
+  const task = await new Task(newTask);
+  task.save();
+
+  await Project.findByIdAndUpdate(projectId, {
+    $push: { tasks: task._id },
+    $push: { assignees: assignee },
+  });
 
   return sendResponse(res, 200, true, task, null, "Create Task successful");
 });
