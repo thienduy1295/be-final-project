@@ -26,7 +26,7 @@ projectController.createProject = catchAsync(async (req, res, next) => {
 });
 
 // 2. Authenticated admin can see a list of task.
-projectController.getAllTasks = catchAsync(async (req, res, next) => {
+projectController.getAllProject = catchAsync(async (req, res, next) => {
   // let tasksList = await Task.find()
   //   .populate("assignee")
   //   .sort({ createdAt: -1 });

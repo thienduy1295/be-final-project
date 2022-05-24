@@ -13,4 +13,8 @@ router.use("/tasks", taskRouter);
 const bimLibRouter = require("./bimLib.api");
 router.use("/bimLibrary", bimLibRouter);
 
+/** Project endpoints */
+const projectRouter = require("./project.api");
+router.use("/project", projectRouter);
+
 module.exports = router;
