@@ -13,7 +13,7 @@ const { sendResponse } = require("./helpers/utils");
 
 const app = express();
 
-app.use(logger("dev"));
+app.use(logger("start"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
