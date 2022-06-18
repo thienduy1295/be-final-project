@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 
 const indexRouter = require("./routes/index");
-const mongoURI = process.env.MONGO_DEV_URI;
+const mongoURI = process.env.MONGO_PRO_URI;
 
 const mongoose = require("mongoose");
 const { sendResponse } = require("./helpers/utils");
